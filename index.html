@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AISHWR</title>
+</head>
+
+<body>
+    <div>
+        <label for="playerLevel">Player Rating (r):</label>
+        <input type="number" id="playerLevel" min="1">
+    </div>
+    <div>
+        <label for="aiScore">AI Score (s):</label>
+        <input type="number" id="aiScore" min="1">
+    </div>
+    <div>
+        <label for="moveNumber">Move Number (m):</label>
+        <input type="number" id="moveNumber" min="1">
+    </div>
+    <button id="calculateButton">Calculate</button>
+    <div>
+        <h1>Black: <span id="blackWinRate">0%</span></h1>
+        <h1>White: <span id="whiteWinRate">0%</span></h1>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const playerLevelInput = document.getElementById("playerLevel");
+            const aiScoreInput = document.getElementById("aiScore");
+            const moveNumberInput = document.getElementById("moveNumber");
+            const calculateButton = document.getElementById("calculateButton");
+            const blackWinRateSpan = document.getElementById("blackWinRate");
+            const whiteWinRateSpan = document.getElementById("whiteWinRate");
+
+            calculateButton.addEventListener("click", function () {
+                const PLAYERLEVEL = parseInt(playerLevelInput.value);
+                const AISCORE = parseInt(aiScoreInput.value);
+                const MOVENUMBER = parseInt(moveNumberInput.value);
+
+                const { blackWinRate, whiteWinRate } = calculateHumanWinRate(PLAYERLEVEL, AISCORE, MOVENUMBER);
+
+                blackWinRateSpan.textContent = blackWinRate.toFixed(2) + "%";
+                whiteWinRateSpan.textContent = whiteWinRate.toFixed(2) + "%";
+            });
+            function calculateHumanWinRate(PLAYERLEVEL, AISCORE, MOVENUMBER) {
+                // euler constant
+                const e = 2.71828182845904523536;
+
+                function k() {
+                    return 1.99 - 0.00557 * MOVENUMBER;
+                }
+
+                function w() {
+                    return 0.0375 + 0.000543 * PLAYERLEVEL;
+                }
+
+                function d() {
+                    return 0.00292 * Math.pow(e, 0.354 * PLAYERLEVEL) + 0.025;
+                }
+
+                function g() {
+                    return 0.0001 * Math.pow(e, w() * MOVENUMBER) + d();
+                }
+
+                function wr(humanWinRate) {
+                    let blackWinRate;
+                    let whiteWinRate;
+
+                    if (MOVENUMBER % 2 == 0) {
+                        blackWinRate = humanWinRate;
+                        whiteWinRate = 100 - humanWinRate;
+                    } else {
+                        blackWinRate = 100 - humanWinRate;
+                        whiteWinRate = humanWinRate;
+                    }
+
+                    return { blackWinRate, whiteWinRate }
+
+                }
+
+                function QuentinWinrateFunction() {
+                    const middleNumerator = g() * AISCORE;
+                    const middleDenominator = Math.pow(
+                        1 + Math.pow(Math.abs(g() * AISCORE), k()),
+                        1 / k(),
+                    );
+                    return (0.5 * middleNumerator) / middleDenominator + 0.5;
+                }
+
+                let humanWinRate = Math.round(QuentinWinrateFunction() * 100);
+
+                return wr(humanWinRate)
+
+            }
+        });
+    </script>
+
+</body>
+
+</html>
